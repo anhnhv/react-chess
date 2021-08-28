@@ -1,0 +1,31 @@
+import React from 'react';
+
+import Piece_p from './../../assets/pieces/b_pawn.svg';
+import Piece_k from './../../assets/pieces/b_king.svg';
+import Piece_q from './../../assets/pieces/b_queen.svg';
+
+import Piece_P from './../../assets/pieces/w_pawn.svg';
+import Piece_K from './../../assets/pieces/w_king.svg';
+import Piece_Q from './../../assets/pieces/w_queen.svg';
+
+const PIECES = {
+  p: Piece_p,
+  k: Piece_k,
+  q: Piece_q,
+
+  P: Piece_P,
+  K: Piece_K,
+  Q: Piece_Q,
+};
+
+const Cell = ({ piece }) => {
+  const pieceIcon = PIECES[piece] || null;
+
+  return (
+    <div style={{ display: 'flex', width: '100%', height: '100%', padding: '10%' }}>
+      { pieceIcon && <img src={pieceIcon} style={{ width: '100%', height: '100%' }} />}
+    </div>
+  );
+}
+
+export default React.memo(Cell);
