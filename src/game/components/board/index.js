@@ -10,17 +10,18 @@ const Board = () => {
   const [ map, setMap ] = useState(null);
   const [ chess, setChess ] = useState(null);
   const [ selectedCell, setSelectedCell ] = useState(null);
+  const [ points, setPoints ] = useState([]);
 
   useEffect(() => {
     const defaultMap = [
-      ['p', 'p', 'k', 'q', '', '', '', ''],
-      ['p', 'p', '', '', '', '', 'k', 'q'],
-      ['', '', '', '', '', '', '', ''],
-      ['', '', '', '', '', '', '', ''],
-      ['', '', '', '', '', '', '', ''],
-      ['', '', '', '', '', '', '', ''],
-      ['P', 'P', 'K', 'Q', '', '', '', ''],
-      ['P', 'P', '', '', '', '', 'K', 'Q'],
+      ['r', 'n', 'b', 'k', 'q', '', 'n', 'r'],
+      ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+      ['', '', '', '', '', 'B', '', ''],
+      ['', '', '', '', '', 'Q', '', ''],
+      ['', '', 'b', 'N', '', '', '', ''],
+      ['', '', '', '', 'P', '', 'P', ''],
+      ['P', 'P', 'P', 'P', '', 'P', '', 'P'],
+      ['R', 'N', '', '', 'K', 'B', '', 'R'],
     ];
     setMap(defaultMap);
 
@@ -31,20 +32,29 @@ const Board = () => {
     return map[x][y];
   }
 
-  const select = (x, y) => {
-
+  const getValidDestinations = (from) => {
+    const destinations = chess.getValidDestinations(from);
+    console.log('from', from);
+    console.log('destinations', destinations);
+    if (destinations) {
+      setPoints(destinations);
+    } else {
+      setPoints([]);
+    }
   }
 
   const selectCell = (x, y) => {
-    if (selectedCell) {
+    if (getPiece(x, y)) {
+      setSelectedCell({ x, y });
+      getValidDestinations({ x, y });
+    } else if (selectedCell) {
       const moved = chess.move(selectedCell, { x, y });
 
       if (moved) {
         setMap(chess.currentState);
         setSelectedCell(null);
+        setPoints([]);
       }
-    } else if (getPiece(x, y)) {
-      setSelectedCell({ x, y });
     } else {
       setSelectedCell(null);
     }
@@ -57,16 +67,28 @@ const Board = () => {
           return (
             <div key={`row-${rowIndex}`} style={{ display: 'flex' }}>
               {
-                row.map((cell, colIndex) => {
+                row.map((piece, colIndex) => {
                   const background = (colIndex + rowIndex) % 2 === 1 ? darkBG : lightBG;
+                  const point = points.findIndex(point => point.x === rowIndex && point.y === colIndex) !== -1;
+                  const slected = selectedCell && selectedCell.x === rowIndex && selectedCell.y === colIndex;
+
                   return (
                     <div
                       key={`cell-${rowIndex}-${colIndex}`}
                       style={{ background: `url(${background})` }}
                       onClick={() => selectCell(rowIndex, colIndex)}
-                      className={`cell ${(selectedCell && selectedCell.x === rowIndex && selectedCell.y === colIndex) ? 'selected' : ''}`}
+                      className={`
+                        cell
+                        ${slected ? 'selected' : ''}
+                        ${point ? 'point' : ''}
+                        ${piece ? 'piece' : ''}
+                      `}
                     >
-                      <Piece piece={cell} />
+                      <div>
+                        <Piece
+                          piece={piece}
+                        />
+                      </div>
                     </div>
                   )
                 })
