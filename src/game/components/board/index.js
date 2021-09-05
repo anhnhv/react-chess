@@ -11,31 +11,43 @@ const Board = () => {
   const [ chess, setChess ] = useState(null);
   const [ selectedCell, setSelectedCell ] = useState(null);
   const [ points, setPoints ] = useState([]);
+  const [ turn, setTurn ] = useState(null);
 
   useEffect(() => {
     const defaultMap = [
-      ['r', 'n', 'b', 'k', 'q', '', 'n', 'r'],
-      ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
-      ['', '', '', '', '', 'B', '', ''],
-      ['', '', '', '', '', 'Q', '', ''],
-      ['', '', 'b', 'N', '', '', '', ''],
-      ['', '', '', '', 'P', '', 'P', ''],
+      ['r', '', 'b', '', 'q', '', 'n', 'r'],
+      ['', 'p', '', 'p', 'p', 'p', 'p', 'p'],
+      ['n', '', 'p', '', '', 'B', '', ''],
+      ['p', '', '', 'k', 'b', '', '', ''],
+      ['', '', 'N', '', '', '', '', ''],
+      ['', '', '', 'Q', 'P', '', 'P', ''],
       ['P', 'P', 'P', 'P', '', 'P', '', 'P'],
       ['R', 'N', '', '', 'K', 'B', '', 'R'],
     ];
+    const currentTurn = 'b';
     setMap(defaultMap);
+    setTurn(currentTurn);
 
-    setChess(new Chess(defaultMap));
+    setChess(new Chess({
+      state: defaultMap,
+      turn: currentTurn,
+    }));
   }, []);
 
   const getPiece = (x, y) => {
-    return map[x][y];
+    const piece = map[x] ? map[x][y] : undefined;
+    if (!piece) {
+      return null;
+    }
+
+    return {
+      piece,
+      color: !piece ? null : piece === piece.toUpperCase() ? 'w' : 'b',
+    }
   }
 
   const getValidDestinations = (from) => {
     const destinations = chess.getValidDestinations(from);
-    console.log('from', from);
-    console.log('destinations', destinations);
     if (destinations) {
       setPoints(destinations);
     } else {
@@ -43,11 +55,47 @@ const Board = () => {
     }
   }
 
+  const deselect = () => {
+    setSelectedCell(null);
+    setPoints([]);
+  }
+
+  const move = (from, to) => {
+    const moved = chess.move(from, to);
+    if (!moved) {
+      return;
+    }
+
+    setMap(chess.getCurrentState());
+    setSelectedCell(null);
+    setPoints([]);
+    setTurn(turn === 'w' ? 'b' : 'w');
+  }
+
   const selectCell = (x, y) => {
-    if (getPiece(x, y)) {
+    const piece = getPiece(x, y);
+
+    if (selectedCell && piece && x === selectedCell.x && y === selectedCell.y) {
+      deselect();
+    } else if (piece && piece.color === turn) {
       setSelectedCell({ x, y });
       getValidDestinations({ x, y });
+    } else if (selectedCell && piece && piece.color !== turn) {
+      deselect();
     } else if (selectedCell) {
+      move(selectedCell, { x, y });
+    }
+    //else if (!selectedCell && piece)
+
+    return;
+
+    if (piece && (!selectedCell || (selectedCell && getPiece({ x: selectedCell.x, y: selectedCell.y }).color === piece.color))) {
+      setSelectedCell({ x, y });
+      getValidDestinations({ x, y });
+    } else
+    if (selectedCell) {
+      const slectedPiece = getPiece(x, y);
+      //if (!piece)
       const moved = chess.move(selectedCell, { x, y });
 
       if (moved) {
